@@ -115,10 +115,19 @@ class TripwireBot:
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text("👥 Своя команда: выберите опцию", reply_markup=reply_markup)
             return
-        elif query.data in ["outstaff", "outsource", "no_team"]:
+        elif query.data == "outstaff":
+            # Create new keyboard for "outstaff" options
+            keyboard = [
+                [InlineKeyboardButton("аудит работы привлеченных специалистов + рекомендации проджекта и/или HR", callback_data="audit_outstaff_specialists")],
+                [InlineKeyboardButton("Аудит продукта + рекоммендации продакта", callback_data="audit_product")],
+                [InlineKeyboardButton("Назад", callback_data="back_to_has_product")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await query.edit_message_text("👨‍💼 Аутстафф: выберите опцию", reply_markup=reply_markup)
+            return
+        elif query.data in ["outsource", "no_team"]:
             # Handle the other team options
             responses = {
-                "outstaff": "👨‍💼 Аутстафф: выберите опцию",
                 "outsource": "🏢 Аутсорс: выберите опцию",
                 "no_team": "🚫 Нет никого: выберите опцию"
             }
@@ -136,11 +145,12 @@ class TripwireBot:
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text("✅ Есть продукт: выберите опцию", reply_markup=reply_markup)
             return
-        elif query.data in ["audit_processes", "audit_product"]:
+        elif query.data in ["audit_processes", "audit_product", "audit_outstaff_specialists"]:
             # Handle the audit options - send PDF files
             pdf_files = {
                 "audit_processes": "audit_processes.pdf",
-                "audit_product": "audit_product.pdf"
+                "audit_product": "audit_product.pdf",
+                "audit_outstaff_specialists": "audit_outstaff_specialists.pdf"
             }
             
             if query.data in pdf_files:
