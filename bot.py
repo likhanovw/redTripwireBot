@@ -126,12 +126,22 @@ class TripwireBot:
             await query.edit_message_text("✅ Есть продукт: выберите опцию", reply_markup=reply_markup)
             return
         elif query.data in ["audit_processes", "audit_product"]:
-            # Handle the audit options
-            responses = {
-                "audit_processes": "📊 Аудит процессов + рекомендация проджекта: файл",
-                "audit_product": "🔍 Аудит продукта + рекоммендации продакта: файл"
+            # Handle the audit options - send PDF files
+            pdf_files = {
+                "audit_processes": "audit_processes.pdf",
+                "audit_product": "audit_product.pdf"
             }
-            await query.edit_message_text(responses[query.data])
+            
+            if query.data in pdf_files:
+                filename = pdf_files[query.data]
+                try:
+                    # Import PDF handler and send the file
+                    from pdf_handler import PDFHandler
+                    pdf_handler = PDFHandler()
+                    await pdf_handler.send_pdf(update, context, filename)
+                except Exception as e:
+                    logger.error(f"Error sending PDF {filename}: {e}")
+                    await query.edit_message_text(f"❌ Ошибка отправки файла {filename}. Попробуйте позже.")
             return
         elif query.data in ["fully_own", "own_plus_external", "custom_development", "buy_customize"]:
             # Handle the no product options

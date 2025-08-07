@@ -1,6 +1,6 @@
 import os
 import logging
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
 logger = logging.getLogger(__name__)
@@ -43,12 +43,16 @@ class PDFHandler:
                     chat_id=update.callback_query.from_user.id,
                     document=pdf_file,
                     filename=filename,
-                    caption=f"📄 Here's your {filename}"
+                    caption=f"📄 Держите {filename}"
                 )
             
-            # Update the original message
+            # Update the original message with main menu button
+            keyboard = [
+                [InlineKeyboardButton("Главное меню", callback_data="back_to_start")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
             await update.callback_query.edit_message_text(
-                f"✅ {filename} sent successfully!"
+                f"✅ {filename} отправлен успешно!", reply_markup=reply_markup
             )
             
             logger.info(f"PDF {filename} sent to user {update.callback_query.from_user.id}")
