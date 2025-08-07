@@ -37,22 +37,24 @@ class PDFHandler:
                 )
                 return False
             
-            # Send the PDF file
+            # Send the PDF file with main menu button attached
+            keyboard = [
+                [InlineKeyboardButton("Главное меню", callback_data="back_to_start")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
             with open(pdf_path, 'rb') as pdf_file:
                 await context.bot.send_document(
                     chat_id=update.callback_query.from_user.id,
                     document=pdf_file,
                     filename=filename,
-                    caption=f"📄 Держите {filename}"
+                    caption=f"📄 Держите {filename}",
+                    reply_markup=reply_markup
                 )
             
-            # Update the original message with main menu button
-            keyboard = [
-                [InlineKeyboardButton("Главное меню", callback_data="back_to_start")]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
+            # Update the original message to show success
             await update.callback_query.edit_message_text(
-                f"✅ {filename} отправлен успешно!", reply_markup=reply_markup
+                f"✅ {filename} отправлен успешно!"
             )
             
             logger.info(f"PDF {filename} sent to user {update.callback_query.from_user.id}")

@@ -86,13 +86,24 @@ class TripwireBot:
             await query.edit_message_text("❌ Нет продукта: выберите опцию", reply_markup=reply_markup)
             return
         elif query.data == "back_to_start":
-            # Return to the main start menu
+            # Check if the message has a document (PDF) or is just text
             keyboard = [
                 [InlineKeyboardButton("Есть продукт", callback_data="has_product")],
                 [InlineKeyboardButton("Нет продукта", callback_data="no_product")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
-            await query.edit_message_text("приветственное сообщение", reply_markup=reply_markup)
+            
+            # If message has a document, send new message. Otherwise, edit existing message
+            if query.message.document:
+                # PDF message - send new message
+                await context.bot.send_message(
+                    chat_id=query.from_user.id,
+                    text="приветственное сообщение",
+                    reply_markup=reply_markup
+                )
+            else:
+                # Regular text message - edit existing message
+                await query.edit_message_text("приветственное сообщение", reply_markup=reply_markup)
             return
         elif query.data == "own_team":
             # Create new keyboard for "own_team" options
