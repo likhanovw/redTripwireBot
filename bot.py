@@ -2,6 +2,10 @@ import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from config import BOT_TOKEN
+from handlers.extendedUseRequest import ExtendedUseRequestHandler
+from handlers.calculation_handler import CalculationHandler
+from handlers.strategic_handler import StrategicHandler
+from handlers.materials_handler import MaterialsHandler
 
 # Configure logging
 logging.basicConfig(
@@ -13,6 +17,15 @@ logger = logging.getLogger(__name__)
 class TripwireBot:
     def __init__(self):
         self.application = Application.builder().token(BOT_TOKEN).build()
+        
+        # Initialize handlers
+        from pdf_handler import PDFHandler
+        pdf_handler = PDFHandler()
+        self.extended_use_handler = ExtendedUseRequestHandler(pdf_handler)
+        self.calculation_handler = CalculationHandler(pdf_handler)
+        self.strategic_handler = StrategicHandler(pdf_handler)
+        self.materials_handler = MaterialsHandler(pdf_handler)
+        
         self.setup_handlers()
     
     def setup_handlers(self):
@@ -31,8 +44,9 @@ class TripwireBot:
         
         # Create inline keyboard with options
         keyboard = [
-            [InlineKeyboardButton("Есть продукт", callback_data="has_product")],
-            [InlineKeyboardButton("Нет продукта", callback_data="no_product")]
+            [InlineKeyboardButton("Заявка на расчет", callback_data="calculation")],
+            [InlineKeyboardButton("Заявка на стратегическую сессию", callback_data="strategic")],
+            [InlineKeyboardButton("Полезные материалы", callback_data="materials")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
@@ -61,119 +75,43 @@ class TripwireBot:
         query = update.callback_query
         await query.answer()  # Answer the callback query
         
+        # Extended Use Request Handler
         if query.data == "has_product":
-            # Create new keyboard for "Есть продукт" options
-            keyboard = [
-                [InlineKeyboardButton("Своя команда", callback_data="own_team")],
-                [InlineKeyboardButton("Аутстафф", callback_data="outstaff")],
-                [InlineKeyboardButton("Аутсорс", callback_data="outsource")],
-                [InlineKeyboardButton("Нет никого", callback_data="no_team")],
-                [InlineKeyboardButton("Назад", callback_data="back_to_start")]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            await query.edit_message_text("✅ Есть продукт: выберите опцию", reply_markup=reply_markup)
-            return
+            await self.extended_use_handler.handle_has_product(query, context)
         elif query.data == "no_product":
-            # Create new keyboard for "Нет продукта" options
-            keyboard = [
-                [InlineKeyboardButton("полностью сами", callback_data="fully_own")],
-                [InlineKeyboardButton("Сами + усиление извне", callback_data="own_plus_external")],
-                [InlineKeyboardButton("Заказная разработка", callback_data="custom_development")],
-                [InlineKeyboardButton("Покупка готового продукта с кастомизацией", callback_data="buy_customize")],
-                [InlineKeyboardButton("Назад", callback_data="back_to_start")]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            await query.edit_message_text("❌ Нет продукта: выберите опцию", reply_markup=reply_markup)
-            return
-        elif query.data == "back_to_start":
-            # Check if the message has a document (PDF) or is just text
-            keyboard = [
-                [InlineKeyboardButton("Есть продукт", callback_data="has_product")],
-                [InlineKeyboardButton("Нет продукта", callback_data="no_product")]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            
-            # If message has a document, send new message. Otherwise, edit existing message
-            if query.message.document:
-                # PDF message - send new message
-                await context.bot.send_message(
-                    chat_id=query.from_user.id,
-                    text="приветственное сообщение",
-                    reply_markup=reply_markup
-                )
-            else:
-                # Regular text message - edit existing message
-                await query.edit_message_text("приветственное сообщение", reply_markup=reply_markup)
-            return
+            await self.extended_use_handler.handle_no_product(query, context)
         elif query.data == "own_team":
-            # Create new keyboard for "own_team" options
-            keyboard = [
-                [InlineKeyboardButton("Аудит процессов + рекомендация проджекта", callback_data="audit_processes")],
-                [InlineKeyboardButton("Аудит продукта + рекоммендации продакта", callback_data="audit_product")],
-                [InlineKeyboardButton("Назад", callback_data="back_to_has_product")]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            await query.edit_message_text("👥 Своя команда: выберите опцию", reply_markup=reply_markup)
-            return
+            await self.extended_use_handler.handle_own_team(query, context)
         elif query.data == "outstaff":
-            # Create new keyboard for "outstaff" options
-            keyboard = [
-                [InlineKeyboardButton("аудит работы привлеченных специалистов + рекомендации проджекта и/или HR", callback_data="audit_outstaff_specialists")],
-                [InlineKeyboardButton("Аудит продукта + рекоммендации продакта", callback_data="audit_product")],
-                [InlineKeyboardButton("Назад", callback_data="back_to_has_product")]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            await query.edit_message_text("👨‍💼 Аутстафф: выберите опцию", reply_markup=reply_markup)
-            return
+            await self.extended_use_handler.handle_outstaff(query, context)
         elif query.data in ["outsource", "no_team"]:
-            # Handle the other team options
-            responses = {
-                "outsource": "🏢 Аутсорс: выберите опцию",
-                "no_team": "🚫 Нет никого: выберите опцию"
-            }
-            await query.edit_message_text(responses[query.data])
-            return
+            await self.extended_use_handler.handle_other_team_options(query, context)
         elif query.data == "back_to_has_product":
-            # Return to the "Есть продукт" menu
-            keyboard = [
-                [InlineKeyboardButton("Своя команда", callback_data="own_team")],
-                [InlineKeyboardButton("Аутстафф", callback_data="outstaff")],
-                [InlineKeyboardButton("Аутсорс", callback_data="outsource")],
-                [InlineKeyboardButton("Нет никого", callback_data="no_team")],
-                [InlineKeyboardButton("Назад", callback_data="back_to_start")]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            await query.edit_message_text("✅ Есть продукт: выберите опцию", reply_markup=reply_markup)
-            return
+            await self.extended_use_handler.handle_back_to_has_product(query, context)
         elif query.data in ["audit_processes", "audit_product", "audit_outstaff_specialists"]:
-            # Handle the audit options - send PDF files
-            pdf_files = {
-                "audit_processes": "audit_processes.pdf",
-                "audit_product": "audit_product.pdf",
-                "audit_outstaff_specialists": "audit_outstaff_specialists.pdf"
-            }
-            
-            if query.data in pdf_files:
-                filename = pdf_files[query.data]
-                try:
-                    # Import PDF handler and send the file
-                    from pdf_handler import PDFHandler
-                    pdf_handler = PDFHandler()
-                    await pdf_handler.send_pdf(update, context, filename)
-                except Exception as e:
-                    logger.error(f"Error sending PDF {filename}: {e}")
-                    await query.edit_message_text(f"❌ Ошибка отправки файла {filename}. Попробуйте позже.")
-            return
+            await self.extended_use_handler.handle_audit_options(query, context)
         elif query.data in ["fully_own", "own_plus_external", "custom_development", "buy_customize"]:
-            # Handle the no product options
-            responses = {
-                "fully_own": "🛠️ Полностью сами: выберите опцию",
-                "own_plus_external": "🔧 Сами + усиление извне: выберите опцию",
-                "custom_development": "📋 Заказная разработка: выберите опцию",
-                "buy_customize": "🛒 Покупка готового продукта с кастомизацией: выберите опцию"
-            }
-            await query.edit_message_text(responses[query.data])
-            return
+            await self.extended_use_handler.handle_no_product_options(query, context)
+        elif query.data == "back_to_start":
+            await self.extended_use_handler.handle_back_to_start(query, context)
+        
+        # Calculation Handler
+        elif query.data == "calculation":
+            await self.calculation_handler.handle_calculation_request(query, context)
+        
+        # Strategic Handler
+        elif query.data == "strategic":
+            await self.strategic_handler.handle_strategic_request(query, context)
+        
+        # Materials Handler
+        elif query.data == "materials":
+            await self.materials_handler.handle_materials_request(query, context)
+        elif query.data == "materials_file_1":
+            await self.materials_handler.handle_materials_file_1(query, context)
+        elif query.data == "materials_file_2":
+            await self.materials_handler.handle_materials_file_2(query, context)
+        elif query.data == "materials_file_3":
+            await self.materials_handler.handle_materials_file_3(query, context)
     
     def run(self):
         """Start the bot"""
