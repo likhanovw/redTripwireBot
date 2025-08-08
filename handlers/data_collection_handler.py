@@ -52,7 +52,18 @@ class DataCollectionHandler:
             [InlineKeyboardButton("❌ Не согласен", callback_data="consent_no")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(consent_text, reply_markup=reply_markup)
+        
+        # Check if the message has a document (PDF) - can't edit those
+        if query.message.document:
+            # PDF message - send new message instead of editing
+            await context.bot.send_message(
+                chat_id=query.from_user.id,
+                text=consent_text,
+                reply_markup=reply_markup
+            )
+        else:
+            # Regular text message - edit existing message
+            await query.edit_message_text(consent_text, reply_markup=reply_markup)
     
     async def handle_consent_yes(self, query, context):
         """User agreed to data processing"""

@@ -91,6 +91,17 @@ class TripwireBot:
         query = update.callback_query
         await query.answer()  # Answer the callback query
         
+        # Auto-reload data if file has been modified
+        self.data_collection_handler.data_manager.check_and_reload()
+        
+        # Check if user has consent (except for consent-related buttons)
+        consent_buttons = ["consent_yes", "consent_no", "request_contact"]
+        if query.data not in consent_buttons:
+            if not self.data_collection_handler.data_manager.user_has_consent(query.from_user.id):
+                # User doesn't have consent - redirect to consent flow
+                await self.data_collection_handler.request_consent(query, context)
+                return
+        
         # Extended Use Request Handler
         if query.data == "has_product":
             await self.extended_use_handler.handle_has_product(query, context)

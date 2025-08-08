@@ -92,6 +92,7 @@ python3 bot.py
 - ✅ **Auto-Reload** - Updates data when file modified
 - ✅ **Transparent Operation** - No user intervention needed
 - ✅ **Secure by Design** - No public admin commands
+- ✅ **Data Deletion Protection** - Redirects to consent if user data deleted
 
 ## 📱 Bot Commands
 
@@ -250,6 +251,7 @@ python3 delete_user.py
 - Edit `user_data.json` directly
 - Bot will auto-reload on next interaction
 - No restart required for data changes
+- **Data Deletion Protection** - If user data is deleted while bot is running, user will be redirected to consent flow on next button click
 
 ---
 
