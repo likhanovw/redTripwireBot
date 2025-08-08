@@ -46,4 +46,7 @@ Thumbs.db
 *.log
 
 # PDF files (optional - remove if you want to track PDFs)
-pdfs/*.pdf 
+pdfs/*.pdf
+
+# User data files
+user_data.json 

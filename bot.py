@@ -1,11 +1,12 @@
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 from config import BOT_TOKEN
 from handlers.extendedUseRequest import ExtendedUseRequestHandler
 from handlers.calculation_handler import CalculationHandler
 from handlers.strategic_handler import StrategicHandler
 from handlers.materials_handler import MaterialsHandler
+from handlers.data_collection_handler import DataCollectionHandler
 
 # Configure logging
 logging.basicConfig(
@@ -20,11 +21,16 @@ class TripwireBot:
         
         # Initialize handlers
         from pdf_handler import PDFHandler
+        from data_manager import UserDataManager
+        
         pdf_handler = PDFHandler()
+        data_manager = UserDataManager()
+        
         self.extended_use_handler = ExtendedUseRequestHandler(pdf_handler)
         self.calculation_handler = CalculationHandler(pdf_handler)
         self.strategic_handler = StrategicHandler(pdf_handler)
         self.materials_handler = MaterialsHandler(pdf_handler)
+        self.data_collection_handler = DataCollectionHandler(data_manager)
         
         self.setup_handlers()
     
@@ -36,21 +42,31 @@ class TripwireBot:
         
         # Callback query handler for button clicks
         self.application.add_handler(CallbackQueryHandler(self.button_callback))
+        
+        # Message handlers for data collection
+        self.application.add_handler(MessageHandler(filters.CONTACT, self.handle_contact))
     
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /start command"""
         user = update.effective_user
-        welcome_message = f"приветственное сообщение"
         
-        # Create inline keyboard with options
-        keyboard = [
-            [InlineKeyboardButton("Заявка на расчет", callback_data="calculation")],
-            [InlineKeyboardButton("Заявка на стратегическую сессию", callback_data="strategic")],
-            [InlineKeyboardButton("Полезные материалы", callback_data="materials")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
+        # Auto-reload data if file has been modified
+        self.data_collection_handler.data_manager.check_and_reload()
         
-        await update.message.reply_text(welcome_message, reply_markup=reply_markup)
+        # Check if user has already given consent
+        if self.data_collection_handler.data_manager.user_has_consent(user.id):
+            # User already consented - show main menu
+            welcome_message = f"приветственное сообщение"
+            keyboard = [
+                [InlineKeyboardButton("Заявка на расчет", callback_data="calculation")],
+                [InlineKeyboardButton("Заявка на стратегическую сессию", callback_data="strategic")],
+                [InlineKeyboardButton("Полезные материалы", callback_data="materials")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text(welcome_message, reply_markup=reply_markup)
+        else:
+            # First time user - request consent
+            await self.data_collection_handler.request_initial_consent(update, context)
     
     async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /help command"""
@@ -112,6 +128,22 @@ class TripwireBot:
             await self.materials_handler.handle_materials_file_2(query, context)
         elif query.data == "materials_file_3":
             await self.materials_handler.handle_materials_file_3(query, context)
+        
+        # Data Collection Handler
+        elif query.data == "consent_yes":
+            await self.data_collection_handler.handle_consent_yes(query, context)
+        elif query.data == "consent_no":
+            await self.data_collection_handler.handle_consent_no(query, context)
+        elif query.data == "request_contact":
+            await self.data_collection_handler.request_contact(query, context)
+        elif query.data == "show_my_data":
+            await self.data_collection_handler.show_user_data(query, context)
+    
+    async def handle_contact(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle when user shares contact"""
+        await self.data_collection_handler.handle_phone_shared(update, context)
+    
+
     
     def run(self):
         """Start the bot"""
