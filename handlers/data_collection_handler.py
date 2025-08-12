@@ -69,29 +69,66 @@ class DataCollectionHandler:
         """User agreed to data processing"""
         user = query.from_user
         
-        # Collect basic data automatically
-        user_data = {
-            "telegram_id": user.id,
-            "name": None,  # Will be collected from contact
-            "username": user.username,
-            "phone": None,  # Will be collected via contact sharing
-            "consent_given": True,
-            "consent_date": datetime.now().isoformat()
-        }
+        # Force reload data to get the latest user data
+        self.data_manager.reload_data()
         
-        # Save to JSON
-        if self.data_manager.save_user_data(user.id, user_data):
-            # Request contact information directly
+        # Small delay to ensure file is written
+        import time
+        time.sleep(0.1)
+        
+        # Check if user already exists in our database
+        existing_user_data = self.data_manager.get_user_data(user.id)
+        
+        # Debug logging
+        logger.info(f"User {user.id} existing data: {existing_user_data}")
+        
+        # Check if user has phone number (either in data or directly in user_data)
+        has_phone = False
+        if existing_user_data:
+            # Check in the data object
+            if existing_user_data.get("data", {}).get("phone"):
+                has_phone = True
+                logger.info(f"User {user.id} has phone in data: {existing_user_data.get('data', {}).get('phone')}")
+            # Also check if phone is directly in user_data (for backward compatibility)
+            elif existing_user_data.get("phone"):
+                has_phone = True
+                logger.info(f"User {user.id} has phone directly: {existing_user_data.get('phone')}")
+        
+        logger.info(f"User {user.id} has_phone: {has_phone}")
+        
+        if has_phone:
+            # User already exists with phone number - go directly to main menu
+            await query.edit_message_text(
+                "Спасибо! Ваши данные уже сохранены в нашей базе."
+            )
+            
+            # Send main menu directly
             keyboard = [
-                [InlineKeyboardButton("📱 Поделиться", callback_data="request_contact")]
+                [InlineKeyboardButton("Полезные файлы", callback_data="useful_files")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
-            await query.edit_message_text(
-                "Спасибо! Теперь предоставьте ваш номер телефона для связи:",
+            await context.bot.send_message(
+                chat_id=query.from_user.id,
+                text="приветственное сообщение",
                 reply_markup=reply_markup
             )
         else:
-            await query.edit_message_text("❌ Ошибка сохранения данных. Попробуйте позже.")
+            # New user or user without phone - request contact information
+            await query.edit_message_text(
+                "Спасибо! Теперь нажмите кнопку 'Поделиться контактом' для предоставления ваших данных:"
+            )
+            
+            # Then send a new message with the contact keyboard
+            keyboard = [
+                [KeyboardButton("📱 Поделиться контактом", request_contact=True)]
+            ]
+            reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
+            
+            await context.bot.send_message(
+                chat_id=query.from_user.id,
+                text="Нажмите кнопку ниже:",
+                reply_markup=reply_markup
+            )
     
     async def handle_consent_no(self, query, context):
         """User declined data processing"""
@@ -105,51 +142,49 @@ class DataCollectionHandler:
             reply_markup=reply_markup
         )
     
-    async def request_contact(self, query, context):
-        """Request contact information"""
-        keyboard = [
-            [KeyboardButton("📱 Поделиться", request_contact=True)]
-        ]
-        reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True, resize_keyboard=True)
-        
-        await context.bot.send_message(
-            chat_id=query.from_user.id,
-            text="Пожалуйста, нажмите кнопку 'Поделиться' для предоставления вашего номера телефона:",
-            reply_markup=reply_markup
-        )
+
     
     async def handle_phone_shared(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle when user shares their phone number"""
+        """Handle when user shares their contact (includes all data)"""
         if update.message.contact:
-            user_id = update.message.from_user.id
+            user = update.message.from_user
             contact = update.message.contact
             phone = contact.phone_number
             name = contact.first_name or contact.full_name or "Не указано"
             
-            # Update user data with both name and phone from contact
-            user_data = self.data_manager.get_user_data(user_id)
-            if user_data:
-                user_data["data"]["phone"] = phone
-                user_data["data"]["name"] = name
-                user_data["data"]["last_updated"] = datetime.now().isoformat()
-                self.data_manager.save_user_data(user_id, user_data["data"])
+            # Collect all user data at once
+            user_data = {
+                "telegram_id": user.id,
+                "name": name,
+                "username": user.username,
+                "phone": phone
+            }
             
-            # Go directly to new feature after data collection
-            await update.message.reply_text(
-                f"Спасибо! Ваше имя: {name}\nВаш номер: {phone}\n\n"
-                f"Данные успешно сохранены. Мы свяжемся с вами в ближайшее время!"
-            )
-            
-            # Send main menu directly
-            keyboard = [
-                [InlineKeyboardButton("Полезные файлы", callback_data="useful_files")]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            await context.bot.send_message(
-                chat_id=update.message.chat_id,
-                text="приветственное сообщение",
-                reply_markup=reply_markup
-            )
+            # Save all data to JSON
+            if self.data_manager.save_user_data(user.id, user_data):
+                # Remove the contact sharing keyboard by sending a message with remove_keyboard
+                from telegram import ReplyKeyboardRemove
+                await update.message.reply_text(
+                    f"Спасибо! Ваши данные:\n"
+                    f"Имя: {name}\n"
+                    f"Телефон: {phone}\n"
+                    f"Username: {user.username}\n\n"
+                    f"Данные успешно сохранены. Мы свяжемся с вами в ближайшее время!",
+                    reply_markup=ReplyKeyboardRemove()
+                )
+                
+                # Send main menu directly
+                keyboard = [
+                    [InlineKeyboardButton("Полезные файлы", callback_data="useful_files")]
+                ]
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                await context.bot.send_message(
+                    chat_id=update.message.chat_id,
+                    text="приветственное сообщение",
+                    reply_markup=reply_markup
+                )
+            else:
+                await update.message.reply_text("❌ Ошибка сохранения данных. Попробуйте позже.")
     
 
     

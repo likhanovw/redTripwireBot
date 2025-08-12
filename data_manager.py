@@ -64,9 +64,13 @@ class UserDataManager:
     def save_user_data(self, user_id, user_data):
         """Save user data with consent"""
         try:
+            # Check if user already exists to preserve consent date
+            existing_data = self.data.get(str(user_id))
+            consent_date = existing_data.get("consent_date") if existing_data else datetime.now().isoformat()
+            
             self.data[str(user_id)] = {
                 "consent_given": True,
-                "consent_date": datetime.now().isoformat(),
+                "consent_date": consent_date,
                 "data": user_data,
                 "last_updated": datetime.now().isoformat()
             }

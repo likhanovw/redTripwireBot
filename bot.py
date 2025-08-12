@@ -109,7 +109,7 @@ class TripwireBot:
         self.data_collection_handler.data_manager.check_and_reload()
         
         # Check if user has consent (except for consent-related buttons)
-        consent_buttons = ["consent_yes", "consent_no", "request_contact"]
+        consent_buttons = ["consent_yes", "consent_no"]
         if query.data not in consent_buttons:
             if not self.data_collection_handler.data_manager.user_has_consent(query.from_user.id):
                 # User doesn't have consent - redirect to consent flow
@@ -131,8 +131,6 @@ class TripwireBot:
             await self.data_collection_handler.handle_consent_yes(query, context)
         elif query.data == "consent_no":
             await self.data_collection_handler.handle_consent_no(query, context)
-        elif query.data == "request_contact":
-            await self.data_collection_handler.request_contact(query, context)
         elif query.data == "show_my_data":
             await self.data_collection_handler.show_user_data(query, context)
         
