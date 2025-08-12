@@ -140,14 +140,14 @@ class DataCollectionHandler:
                 f"Данные успешно сохранены. Мы свяжемся с вами в ближайшее время!"
             )
             
-            # Send new feature directly
+            # Send main menu directly
             keyboard = [
-                [InlineKeyboardButton("🆕 Начать новую функцию", callback_data="new_feature")]
+                [InlineKeyboardButton("Полезные файлы", callback_data="useful_files")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await context.bot.send_message(
                 chat_id=update.message.chat_id,
-                text="Готовы начать работу с новой функцией?",
+                text="приветственное сообщение",
                 reply_markup=reply_markup
             )
     

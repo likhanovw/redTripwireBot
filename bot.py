@@ -7,6 +7,7 @@ from config import BOT_TOKEN
 # from handlers.strategic_handler import StrategicHandler
 # from handlers.materials_handler import MaterialsHandler
 from handlers.data_collection_handler import DataCollectionHandler
+from handlers.keyword_handler import KeywordHandler
 
 # Configure logging
 logging.basicConfig(
@@ -31,6 +32,7 @@ class TripwireBot:
         # self.strategic_handler = StrategicHandler(pdf_handler)
         # self.materials_handler = MaterialsHandler(pdf_handler)
         self.data_collection_handler = DataCollectionHandler(data_manager)
+        self.keyword_handler = KeywordHandler()
         
         self.setup_handlers()
     
@@ -45,6 +47,9 @@ class TripwireBot:
         
         # Message handlers for data collection
         self.application.add_handler(MessageHandler(filters.CONTACT, self.handle_contact))
+        
+        # Message handler for keyword detection
+        self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_text_message))
     
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /start command"""
@@ -58,7 +63,7 @@ class TripwireBot:
             # User already consented - show main menu
             welcome_message = f"приветственное сообщение"
             keyboard = [
-                [InlineKeyboardButton("Новая функция", callback_data="new_feature")],
+                [InlineKeyboardButton("Полезные файлы", callback_data="useful_files")],
                 # [InlineKeyboardButton("Заявка на расчет", callback_data="calculation")],
                 # [InlineKeyboardButton("Заявка на стратегическую сессию", callback_data="strategic")],
                 # [InlineKeyboardButton("Полезные материалы", callback_data="materials")]
@@ -83,6 +88,14 @@ class TripwireBot:
 2. Choose an option from the buttons
 3. The bot will guide you through the process
 
+**📁 Полезные файлы:**
+1. Нажмите "Полезные файлы" в главном меню
+2. Отправьте сообщение с ключевым словом:
+   • аудит, процессы → audit_processes.pdf
+   • продукт, продукта → audit_product.pdf  
+   • первый, файл → frst_file.pdf
+3. Получите соответствующий PDF файл
+
 **Need more help?** Contact the bot administrator.
         """
         await update.message.reply_text(help_text, parse_mode='Markdown')
@@ -103,12 +116,15 @@ class TripwireBot:
                 await self.data_collection_handler.request_consent(query, context)
                 return
         
-        # New Feature Handler (to be implemented)
-        if query.data == "new_feature":
-            await self.handle_new_feature(query, context)
+        # Useful Files Handler
+        if query.data == "useful_files":
+            await self.handle_useful_files(query, context)
         elif query.data == "back_to_start":
-            # Go directly to new feature instead of main menu
-            await self.handle_new_feature(query, context)
+            # Go back to main menu
+            await self.handle_back_to_start(query, context)
+        elif query.data == "back_to_useful_files":
+            # Go back to useful files menu
+            await self.handle_useful_files(query, context)
         
         # Data Collection Handler
         elif query.data == "consent_yes":
@@ -159,20 +175,91 @@ class TripwireBot:
         # elif query.data == "materials_file_3":
         #     await self.materials_handler.handle_materials_file_3(query, context)
     
-    async def handle_new_feature(self, query, context):
-        """Handle new feature - to be implemented"""
-        await query.edit_message_text(
-            "🆕 Новая функция\n\n"
-            "Эта функция находится в разработке.\n"
-            "Скоро здесь будет новая функциональность!",
-            reply_markup=InlineKeyboardMarkup([[
-                InlineKeyboardButton("← Назад", callback_data="back_to_start")
-            ]])
+    async def handle_useful_files(self, query, context):
+        """Handle useful files menu - show keyword instructions"""
+        message_text = (
+            "📁 Полезные файлы\n\n"
+            "Чтобы получить нужный файл, отправьте мне сообщение с ключевым словом.\n\n"
+            "**Доступные ключевые слова:**\n"
+            "• аудит, процессы → audit_processes.pdf\n"
+            "• продукт, продукта → audit_product.pdf\n"
+            "• первый, файл → frst_file.pdf\n\n"
+            "Просто напишите любое из этих слов, и я отправлю соответствующий PDF файл!"
         )
+        reply_markup = InlineKeyboardMarkup([[
+            InlineKeyboardButton("← В начало", callback_data="back_to_start")
+        ]])
+        
+        # Check if the message has a document (PDF) - can't edit those
+        if query.message.document:
+            # PDF message - send new message instead of editing
+            await context.bot.send_message(
+                chat_id=query.from_user.id,
+                text=message_text,
+                reply_markup=reply_markup
+            )
+        else:
+            # Regular text message - edit existing message
+            await query.edit_message_text(message_text, reply_markup=reply_markup)
+    
+    async def handle_back_to_start(self, query, context):
+        """Handle back to start - show main menu"""
+        user = query.from_user
+        
+        # Auto-reload data if file has been modified
+        self.data_collection_handler.data_manager.check_and_reload()
+        
+        # Check if user has consent
+        if not self.data_collection_handler.data_manager.user_has_consent(user.id):
+            # User doesn't have consent - redirect to consent flow
+            await self.data_collection_handler.request_consent(query, context)
+            return
+        
+        # Show main menu
+        welcome_message = f"приветственное сообщение"
+        keyboard = [
+            [InlineKeyboardButton("Полезные файлы", callback_data="useful_files")],
+            # [InlineKeyboardButton("Заявка на расчет", callback_data="calculation")],
+            # [InlineKeyboardButton("Заявка на стратегическую сессию", callback_data="strategic")],
+            # [InlineKeyboardButton("Полезные материалы", callback_data="materials")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        # Check if the message has a document (PDF) - can't edit those
+        if query.message.document:
+            # PDF message - send new message instead of editing
+            await context.bot.send_message(
+                chat_id=query.from_user.id,
+                text=welcome_message,
+                reply_markup=reply_markup
+            )
+        else:
+            # Regular text message - edit existing message
+            await query.edit_message_text(welcome_message, reply_markup=reply_markup)
     
     async def handle_contact(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle when user shares contact"""
         await self.data_collection_handler.handle_phone_shared(update, context)
+    
+    async def handle_text_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle text messages and check for keywords"""
+        # Auto-reload data if file has been modified
+        self.data_collection_handler.data_manager.check_and_reload()
+        
+        # Check if user has consent
+        if not self.data_collection_handler.data_manager.user_has_consent(update.message.from_user.id):
+            # User doesn't have consent - redirect to consent flow
+            await self.data_collection_handler.request_consent(update, context)
+            return
+        
+        # Check for keywords and send PDFs if found
+        handled = await self.keyword_handler.handle_message(update, context)
+        
+        # If no keywords were found, you can add a default response here
+        if not handled:
+            # Optional: Send a helpful message when no keywords are found
+            # await update.message.reply_text("Я не нашел ключевых слов в вашем сообщении. Попробуйте использовать слова: аудит, процессы, продукт, файл")
+            pass
     
     def run(self):
         """Start the bot"""
