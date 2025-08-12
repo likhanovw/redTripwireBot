@@ -107,7 +107,8 @@ class TripwireBot:
         if query.data == "new_feature":
             await self.handle_new_feature(query, context)
         elif query.data == "back_to_start":
-            await self.start_command(update, context)
+            # Go directly to new feature instead of main menu
+            await self.handle_new_feature(query, context)
         
         # Data Collection Handler
         elif query.data == "consent_yes":

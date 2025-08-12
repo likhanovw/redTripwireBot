@@ -134,17 +134,20 @@ class DataCollectionHandler:
                 user_data["data"]["last_updated"] = datetime.now().isoformat()
                 self.data_manager.save_user_data(user_id, user_data["data"])
             
-            # Show main menu after data collection
-            welcome_message = "приветственное сообщение"
-            keyboard = [
-                [InlineKeyboardButton("Заявка на расчет", callback_data="calculation")],
-                [InlineKeyboardButton("Заявка на стратегическую сессию", callback_data="strategic")],
-                [InlineKeyboardButton("Полезные материалы", callback_data="materials")]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
+            # Go directly to new feature after data collection
             await update.message.reply_text(
                 f"Спасибо! Ваше имя: {name}\nВаш номер: {phone}\n\n"
-                f"Данные успешно сохранены. Мы свяжемся с вами в ближайшее время!\n\n{welcome_message}",
+                f"Данные успешно сохранены. Мы свяжемся с вами в ближайшее время!"
+            )
+            
+            # Send new feature directly
+            keyboard = [
+                [InlineKeyboardButton("🆕 Начать новую функцию", callback_data="new_feature")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await context.bot.send_message(
+                chat_id=update.message.chat_id,
+                text="Готовы начать работу с новой функцией?",
                 reply_markup=reply_markup
             )
     
