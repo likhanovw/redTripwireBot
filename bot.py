@@ -41,6 +41,7 @@ class TripwireBot:
         # Command handlers
         self.application.add_handler(CommandHandler("start", self.start_command))
         self.application.add_handler(CommandHandler("help", self.help_command))
+        self.application.add_handler(CommandHandler("docs", self.docs_command))
         
         # Callback query handler for button clicks
         self.application.add_handler(CallbackQueryHandler(self.button_callback))
@@ -82,6 +83,7 @@ class TripwireBot:
 **Available Commands:**
 /start - Start the bot and see available options
 /help - Show this help message
+/docs - Show documentation links
 
 **How to use:**
 1. Click "Start" to begin
@@ -99,6 +101,15 @@ class TripwireBot:
 **Need more help?** Contact the bot administrator.
         """
         await update.message.reply_text(help_text, parse_mode='Markdown')
+    
+    async def docs_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /docs command"""
+        docs_message = "ссылки на доки"
+        keyboard = [
+            [InlineKeyboardButton("В начало", callback_data="back_to_start")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text(docs_message, reply_markup=reply_markup)
     
     async def button_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle button callbacks"""
