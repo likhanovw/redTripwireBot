@@ -2,10 +2,10 @@ import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 from config import BOT_TOKEN
-from handlers.extendedUseRequest import ExtendedUseRequestHandler
-from handlers.calculation_handler import CalculationHandler
-from handlers.strategic_handler import StrategicHandler
-from handlers.materials_handler import MaterialsHandler
+# from handlers.extendedUseRequest import ExtendedUseRequestHandler
+# from handlers.calculation_handler import CalculationHandler
+# from handlers.strategic_handler import StrategicHandler
+# from handlers.materials_handler import MaterialsHandler
 from handlers.data_collection_handler import DataCollectionHandler
 
 # Configure logging
@@ -20,16 +20,16 @@ class TripwireBot:
         self.application = Application.builder().token(BOT_TOKEN).build()
         
         # Initialize handlers
-        from pdf_handler import PDFHandler
+        # from pdf_handler import PDFHandler
         from data_manager import UserDataManager
         
-        pdf_handler = PDFHandler()
+        # pdf_handler = PDFHandler()
         data_manager = UserDataManager()
         
-        self.extended_use_handler = ExtendedUseRequestHandler(pdf_handler)
-        self.calculation_handler = CalculationHandler(pdf_handler)
-        self.strategic_handler = StrategicHandler(pdf_handler)
-        self.materials_handler = MaterialsHandler(pdf_handler)
+        # self.extended_use_handler = ExtendedUseRequestHandler(pdf_handler)
+        # self.calculation_handler = CalculationHandler(pdf_handler)
+        # self.strategic_handler = StrategicHandler(pdf_handler)
+        # self.materials_handler = MaterialsHandler(pdf_handler)
         self.data_collection_handler = DataCollectionHandler(data_manager)
         
         self.setup_handlers()
@@ -58,9 +58,10 @@ class TripwireBot:
             # User already consented - show main menu
             welcome_message = f"приветственное сообщение"
             keyboard = [
-                [InlineKeyboardButton("Заявка на расчет", callback_data="calculation")],
-                [InlineKeyboardButton("Заявка на стратегическую сессию", callback_data="strategic")],
-                [InlineKeyboardButton("Полезные материалы", callback_data="materials")]
+                [InlineKeyboardButton("Новая функция", callback_data="new_feature")],
+                # [InlineKeyboardButton("Заявка на расчет", callback_data="calculation")],
+                # [InlineKeyboardButton("Заявка на стратегическую сессию", callback_data="strategic")],
+                # [InlineKeyboardButton("Полезные материалы", callback_data="materials")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await update.message.reply_text(welcome_message, reply_markup=reply_markup)
@@ -80,7 +81,7 @@ class TripwireBot:
 **How to use:**
 1. Click "Start" to begin
 2. Choose an option from the buttons
-3. The bot will send you the requested PDF file
+3. The bot will guide you through the process
 
 **Need more help?** Contact the bot administrator.
         """
@@ -102,43 +103,11 @@ class TripwireBot:
                 await self.data_collection_handler.request_consent(query, context)
                 return
         
-        # Extended Use Request Handler
-        if query.data == "has_product":
-            await self.extended_use_handler.handle_has_product(query, context)
-        elif query.data == "no_product":
-            await self.extended_use_handler.handle_no_product(query, context)
-        elif query.data == "own_team":
-            await self.extended_use_handler.handle_own_team(query, context)
-        elif query.data == "outstaff":
-            await self.extended_use_handler.handle_outstaff(query, context)
-        elif query.data in ["outsource", "no_team"]:
-            await self.extended_use_handler.handle_other_team_options(query, context)
-        elif query.data == "back_to_has_product":
-            await self.extended_use_handler.handle_back_to_has_product(query, context)
-        elif query.data in ["audit_processes", "audit_product", "audit_outstaff_specialists"]:
-            await self.extended_use_handler.handle_audit_options(query, context)
-        elif query.data in ["fully_own", "own_plus_external", "custom_development", "buy_customize"]:
-            await self.extended_use_handler.handle_no_product_options(query, context)
+        # New Feature Handler (to be implemented)
+        if query.data == "new_feature":
+            await self.handle_new_feature(query, context)
         elif query.data == "back_to_start":
-            await self.extended_use_handler.handle_back_to_start(query, context)
-        
-        # Calculation Handler
-        elif query.data == "calculation":
-            await self.calculation_handler.handle_calculation_request(query, context)
-        
-        # Strategic Handler
-        elif query.data == "strategic":
-            await self.strategic_handler.handle_strategic_request(query, context)
-        
-        # Materials Handler
-        elif query.data == "materials":
-            await self.materials_handler.handle_materials_request(query, context)
-        elif query.data == "materials_file_1":
-            await self.materials_handler.handle_materials_file_1(query, context)
-        elif query.data == "materials_file_2":
-            await self.materials_handler.handle_materials_file_2(query, context)
-        elif query.data == "materials_file_3":
-            await self.materials_handler.handle_materials_file_3(query, context)
+            await self.start_command(update, context)
         
         # Data Collection Handler
         elif query.data == "consent_yes":
@@ -149,12 +118,60 @@ class TripwireBot:
             await self.data_collection_handler.request_contact(query, context)
         elif query.data == "show_my_data":
             await self.data_collection_handler.show_user_data(query, context)
+        
+        # Commented out old handlers for future use
+        # # Extended Use Request Handler
+        # elif query.data == "has_product":
+        #     await self.extended_use_handler.handle_has_product(query, context)
+        # elif query.data == "no_product":
+        #     await self.extended_use_handler.handle_no_product(query, context)
+        # elif query.data == "own_team":
+        #     await self.extended_use_handler.handle_own_team(query, context)
+        # elif query.data == "outstaff":
+        #     await self.extended_use_handler.handle_outstaff(query, context)
+        # elif query.data in ["outsource", "no_team"]:
+        #     await self.extended_use_handler.handle_other_team_options(query, context)
+        # elif query.data == "back_to_has_product":
+        #     await self.extended_use_handler.handle_back_to_has_product(query, context)
+        # elif query.data in ["audit_processes", "audit_product", "audit_outstaff_specialists"]:
+        #     await self.extended_use_handler.handle_audit_options(query, context)
+        # elif query.data in ["fully_own", "own_plus_external", "custom_development", "buy_customize"]:
+        #     await self.extended_use_handler.handle_no_product_options(query, context)
+        # elif query.data == "back_to_start":
+        #     await self.extended_use_handler.handle_back_to_start(query, context)
+        
+        # # Calculation Handler
+        # elif query.data == "calculation":
+        #     await self.calculation_handler.handle_calculation_request(query, context)
+        
+        # # Strategic Handler
+        # elif query.data == "strategic":
+        #     await self.strategic_handler.handle_strategic_request(query, context)
+        
+        # # Materials Handler
+        # elif query.data == "materials":
+        #     await self.materials_handler.handle_materials_request(query, context)
+        # elif query.data == "materials_file_1":
+        #     await self.materials_handler.handle_materials_file_1(query, context)
+        # elif query.data == "materials_file_2":
+        #     await self.materials_handler.handle_materials_file_2(query, context)
+        # elif query.data == "materials_file_3":
+        #     await self.materials_handler.handle_materials_file_3(query, context)
+    
+    async def handle_new_feature(self, query, context):
+        """Handle new feature - to be implemented"""
+        await query.edit_message_text(
+            "🆕 Новая функция\n\n"
+            "Эта функция находится в разработке.\n"
+            "Скоро здесь будет новая функциональность!",
+            reply_markup=InlineKeyboardMarkup([[
+                InlineKeyboardButton("← Назад", callback_data="back_to_start")
+            ]])
+        )
     
     async def handle_contact(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle when user shares contact"""
         await self.data_collection_handler.handle_phone_shared(update, context)
-    
-
     
     def run(self):
         """Start the bot"""
