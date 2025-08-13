@@ -3,13 +3,14 @@ import os
 from datetime import datetime
 import logging
 import time
+from config import FILES
 
 logger = logging.getLogger(__name__)
 
 class UserDataManager:
     """Manages user data storage in JSON format"""
     
-    def __init__(self, filename="user_data.json"):
+    def __init__(self, filename=FILES["user_data"]):
         self.filename = filename
         self.last_modified_time = 0
         self.load_data()

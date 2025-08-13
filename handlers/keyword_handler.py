@@ -1,7 +1,7 @@
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-from config import KEYWORD_PDF_MAPPING
+from config import KEYWORD_PDF_MAPPING, BUTTONS
 from pdf_handler import PDFHandler
 
 logger = logging.getLogger(__name__)
@@ -58,8 +58,8 @@ class KeywordHandler:
             
             # Send the PDF file with main menu button attached
             keyboard = [
-                [InlineKeyboardButton("Назад", callback_data="back_to_start")],
-                [InlineKeyboardButton("← В начало", callback_data="back_to_start")]
+                [InlineKeyboardButton(BUTTONS["back"], callback_data="back_to_start")],
+                [InlineKeyboardButton(BUTTONS["main_menu"], callback_data="back_to_start")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             

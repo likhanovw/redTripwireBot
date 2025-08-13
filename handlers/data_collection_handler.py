@@ -2,6 +2,7 @@ import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton, ForceReply
 from telegram.ext import ContextTypes
 from datetime import datetime
+from config import BUTTONS
 
 logger = logging.getLogger(__name__)
 
@@ -104,8 +105,8 @@ class DataCollectionHandler:
             
             # Send main menu directly
             keyboard = [
-                [InlineKeyboardButton("Полезные файлы", callback_data="useful_files")],
-                [InlineKeyboardButton("Заявка на расчет", callback_data="calculation")]
+                [InlineKeyboardButton(BUTTONS["useful_files"], callback_data="useful_files")],
+                [InlineKeyboardButton(BUTTONS["calculation"], callback_data="calculation")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await context.bot.send_message(
@@ -176,8 +177,8 @@ class DataCollectionHandler:
                 
                 # Send main menu directly
                 keyboard = [
-                    [InlineKeyboardButton("Полезные файлы", callback_data="useful_files")],
-                    [InlineKeyboardButton("Заявка на расчет", callback_data="calculation")]
+                    [InlineKeyboardButton(BUTTONS["useful_files"], callback_data="useful_files")],
+                    [InlineKeyboardButton(BUTTONS["calculation"], callback_data="calculation")]
                 ]
                 reply_markup = InlineKeyboardMarkup(keyboard)
                 await context.bot.send_message(

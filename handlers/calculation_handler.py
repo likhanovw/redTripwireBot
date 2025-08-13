@@ -1,6 +1,7 @@
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
+from config import BUTTONS
 
 logger = logging.getLogger(__name__)
 
@@ -13,9 +14,9 @@ class CalculationHandler:
     async def handle_calculation_request(self, query, context):
         """Handle calculation request"""
         keyboard = [
-            [InlineKeyboardButton("📋 Получить бриф", callback_data="get_brief")],
-            [InlineKeyboardButton("📞 Связаться", callback_data="contact_us")],
-            [InlineKeyboardButton("Назад", callback_data="back_to_start")]
+            [InlineKeyboardButton(BUTTONS["get_brief"], callback_data="get_brief")],
+            [InlineKeyboardButton(BUTTONS["contact_us"], callback_data="contact_us")],
+            [InlineKeyboardButton(BUTTONS["back"], callback_data="back_to_start")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         

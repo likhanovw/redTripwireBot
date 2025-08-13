@@ -1,7 +1,7 @@
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
-from config import BOT_TOKEN
+from config import BOT_TOKEN, MESSAGES, BUTTONS, FILES
 # from handlers.extendedUseRequest import ExtendedUseRequestHandler
 from handlers.calculation_handler import CalculationHandler
 # from handlers.strategic_handler import StrategicHandler
@@ -62,54 +62,29 @@ class TripwireBot:
         # Check if user has already given consent
         if self.data_collection_handler.data_manager.user_has_consent(user.id):
             # User already consented - show main menu
-            welcome_message = f"приветственное сообщение"
             keyboard = [
-                [InlineKeyboardButton("Полезные файлы", callback_data="useful_files")],
-                [InlineKeyboardButton("Заявка на расчет", callback_data="calculation")],
+                [InlineKeyboardButton(BUTTONS["useful_files"], callback_data="useful_files")],
+                [InlineKeyboardButton(BUTTONS["calculation"], callback_data="calculation")],
                 # [InlineKeyboardButton("Заявка на стратегическую сессию", callback_data="strategic")],
                 # [InlineKeyboardButton("Полезные материалы", callback_data="materials")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
-            await update.message.reply_text(welcome_message, reply_markup=reply_markup)
+            await update.message.reply_text(MESSAGES["welcome"], reply_markup=reply_markup)
         else:
             # First time user - request consent
             await self.data_collection_handler.request_initial_consent(update, context)
     
     async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /help command"""
-        help_text = """
-🤖 **TripwireBot Help**
-
-**Available Commands:**
-/start - Start the bot and see available options
-/help - Show this help message
-/docs - Show documentation links
-
-**How to use:**
-1. Click "Start" to begin
-2. Choose an option from the buttons
-3. The bot will guide you through the process
-
-**📁 Полезные файлы:**
-1. Нажмите "Полезные файлы" в главном меню
-2. Отправьте сообщение с ключевым словом:
-   • аудит, процессы → audit_processes.pdf
-   • продукт, продукта → audit_product.pdf  
-   • первый, файл → frst_file.pdf
-3. Получите соответствующий PDF файл
-
-**Need more help?** Contact the bot administrator.
-        """
-        await update.message.reply_text(help_text, parse_mode='Markdown')
+        await update.message.reply_text(MESSAGES["help"], parse_mode='Markdown')
     
     async def docs_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /docs command"""
-        docs_message = "ссылки на доки"
         keyboard = [
-            [InlineKeyboardButton("В начало", callback_data="back_to_start")]
+            [InlineKeyboardButton(BUTTONS["docs_back"], callback_data="back_to_start")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await update.message.reply_text(docs_message, reply_markup=reply_markup)
+        await update.message.reply_text(MESSAGES["docs"], reply_markup=reply_markup)
     
     async def button_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle button callbacks"""
@@ -153,17 +128,8 @@ class TripwireBot:
     
     async def handle_useful_files(self, query, context):
         """Handle useful files menu - show keyword instructions"""
-        message_text = (
-            "📁 Полезные файлы\n\n"
-            "Чтобы получить нужный файл, отправьте мне сообщение с ключевым словом.\n\n"
-            "**Доступные ключевые слова:**\n"
-            "• аудит, процессы → audit_processes.pdf\n"
-            "• продукт, продукта → audit_product.pdf\n"
-            "• первый, файл → frst_file.pdf\n\n"
-            "Просто напишите любое из этих слов, и я отправлю соответствующий PDF файл!"
-        )
         reply_markup = InlineKeyboardMarkup([
-            [InlineKeyboardButton("Назад", callback_data="back_to_start")]
+            [InlineKeyboardButton(BUTTONS["back"], callback_data="back_to_start")]
         ])
         
         # Check if the message has a document (PDF) - can't edit those
@@ -171,12 +137,12 @@ class TripwireBot:
             # PDF message - send new message instead of editing
             await context.bot.send_message(
                 chat_id=query.from_user.id,
-                text=message_text,
+                text=MESSAGES["useful_files"],
                 reply_markup=reply_markup
             )
         else:
             # Regular text message - edit existing message
-            await query.edit_message_text(message_text, reply_markup=reply_markup)
+            await query.edit_message_text(MESSAGES["useful_files"], reply_markup=reply_markup)
     
     async def handle_back_to_start(self, query, context):
         """Handle back to start - show main menu"""
@@ -192,10 +158,9 @@ class TripwireBot:
             return
         
         # Show main menu
-        welcome_message = f"приветственное сообщение"
         keyboard = [
-            [InlineKeyboardButton("Полезные файлы", callback_data="useful_files")],
-            [InlineKeyboardButton("Заявка на расчет", callback_data="calculation")],
+            [InlineKeyboardButton(BUTTONS["useful_files"], callback_data="useful_files")],
+            [InlineKeyboardButton(BUTTONS["calculation"], callback_data="calculation")],
             # [InlineKeyboardButton("Заявка на стратегическую сессию", callback_data="strategic")],
             # [InlineKeyboardButton("Полезные материалы", callback_data="materials")]
         ]
@@ -206,59 +171,59 @@ class TripwireBot:
             # PDF message - send new message instead of editing
             await context.bot.send_message(
                 chat_id=query.from_user.id,
-                text=welcome_message,
+                text=MESSAGES["welcome"],
                 reply_markup=reply_markup
             )
         else:
             # Regular text message - edit existing message
-            await query.edit_message_text(welcome_message, reply_markup=reply_markup)
+            await query.edit_message_text(MESSAGES["welcome"], reply_markup=reply_markup)
     
     async def handle_contact_us(self, query, context):
         """Handle contact us button from calculation handler"""
         keyboard = [
-            [InlineKeyboardButton("Назад", callback_data="calculation")],
-            [InlineKeyboardButton("← В начало", callback_data="back_to_start")]
+            [InlineKeyboardButton(BUTTONS["back"], callback_data="calculation")],
+            [InlineKeyboardButton(BUTTONS["main_menu"], callback_data="back_to_start")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text("вот наши контакты напишите нам", reply_markup=reply_markup)
+        await query.edit_message_text(MESSAGES["contact_us"], reply_markup=reply_markup)
     
     async def handle_get_brief(self, query, context):
         """Handle get brief button from calculation handler"""
         try:
             # Send the RED.brief.odt file with navigation buttons attached (same as PDF files)
             keyboard = [
-                [InlineKeyboardButton("Назад", callback_data="calculation")],
-                [InlineKeyboardButton("← В начало", callback_data="back_to_start")]
+                [InlineKeyboardButton(BUTTONS["back"], callback_data="calculation")],
+                [InlineKeyboardButton(BUTTONS["main_menu"], callback_data="back_to_start")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             
-            with open("RED.brief.odt", "rb") as file:
+            with open(FILES["brief"], "rb") as file:
                 await context.bot.send_document(
                     chat_id=query.from_user.id,
                     document=file,
-                    filename="RED.brief.odt",
-                    caption="📋 Бриф для расчета",
+                    filename=FILES["brief"],
+                    caption=MESSAGES["brief_caption"],
                     reply_markup=reply_markup
                 )
             
         except FileNotFoundError:
             keyboard = [
-                [InlineKeyboardButton("Назад", callback_data="calculation")],
-                [InlineKeyboardButton("← В начало", callback_data="back_to_start")]
+                [InlineKeyboardButton(BUTTONS["back"], callback_data="calculation")],
+                [InlineKeyboardButton(BUTTONS["main_menu"], callback_data="back_to_start")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
-                "❌ Файл бриф не найден. Обратитесь к администратору.",
+                MESSAGES["brief_not_found"],
                 reply_markup=reply_markup
             )
         except Exception as e:
             keyboard = [
-                [InlineKeyboardButton("Назад", callback_data="calculation")],
-                [InlineKeyboardButton("← В начало", callback_data="back_to_start")]
+                [InlineKeyboardButton(BUTTONS["back"], callback_data="calculation")],
+                [InlineKeyboardButton(BUTTONS["main_menu"], callback_data="back_to_start")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
-                f"❌ Ошибка при отправке файла: {str(e)}",
+                MESSAGES["file_error"].format(str(e)),
                 reply_markup=reply_markup
             )
     
