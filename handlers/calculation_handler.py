@@ -18,4 +18,15 @@ class CalculationHandler:
             [InlineKeyboardButton("Назад", callback_data="back_to_start")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text("🧮 Заявка на расчет\n\nФункциональность в разработке.", reply_markup=reply_markup) 
+        
+        # Check if the message has a document (PDF) - can't edit those
+        if query.message.document:
+            # Document message - send new message instead of editing
+            await context.bot.send_message(
+                chat_id=query.from_user.id,
+                text="🧮 Заявка на расчет\n\nФункциональность в разработке.",
+                reply_markup=reply_markup
+            )
+        else:
+            # Regular text message - edit existing message
+            await query.edit_message_text("🧮 Заявка на расчет\n\nФункциональность в разработке.", reply_markup=reply_markup) 

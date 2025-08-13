@@ -162,9 +162,9 @@ class TripwireBot:
             "• первый, файл → frst_file.pdf\n\n"
             "Просто напишите любое из этих слов, и я отправлю соответствующий PDF файл!"
         )
-        reply_markup = InlineKeyboardMarkup([[
-            InlineKeyboardButton("← В начало", callback_data="back_to_start")
-        ]])
+        reply_markup = InlineKeyboardMarkup([
+            [InlineKeyboardButton("Назад", callback_data="back_to_start")]
+        ])
         
         # Check if the message has a document (PDF) - can't edit those
         if query.message.document:
@@ -216,7 +216,8 @@ class TripwireBot:
     async def handle_contact_us(self, query, context):
         """Handle contact us button from calculation handler"""
         keyboard = [
-            [InlineKeyboardButton("Назад", callback_data="calculation")]
+            [InlineKeyboardButton("Назад", callback_data="calculation")],
+            [InlineKeyboardButton("← В начало", callback_data="back_to_start")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text("вот наши контакты напишите нам", reply_markup=reply_markup)
@@ -224,9 +225,10 @@ class TripwireBot:
     async def handle_get_brief(self, query, context):
         """Handle get brief button from calculation handler"""
         try:
-            # Send the RED.brief.odt file with back button attached
+            # Send the RED.brief.odt file with navigation buttons attached (same as PDF files)
             keyboard = [
-                [InlineKeyboardButton("Назад", callback_data="calculation")]
+                [InlineKeyboardButton("Назад", callback_data="calculation")],
+                [InlineKeyboardButton("← В начало", callback_data="back_to_start")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             
@@ -241,7 +243,8 @@ class TripwireBot:
             
         except FileNotFoundError:
             keyboard = [
-                [InlineKeyboardButton("Назад", callback_data="calculation")]
+                [InlineKeyboardButton("Назад", callback_data="calculation")],
+                [InlineKeyboardButton("← В начало", callback_data="back_to_start")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
@@ -250,7 +253,8 @@ class TripwireBot:
             )
         except Exception as e:
             keyboard = [
-                [InlineKeyboardButton("Назад", callback_data="calculation")]
+                [InlineKeyboardButton("Назад", callback_data="calculation")],
+                [InlineKeyboardButton("← В начало", callback_data="back_to_start")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
