@@ -3,7 +3,11 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 from config import BOT_TOKEN
 # from handlers.extendedUseRequest import ExtendedUseRequestHandler
+<<<<<<< HEAD
 from handlers.calculation_handler import CalculationHandler
+=======
+# from handlers.calculation_handler import CalculationHandler
+>>>>>>> 66a159f1d1fd67fd9a0bc573f269d1f9c70a8801
 # from handlers.strategic_handler import StrategicHandler
 # from handlers.materials_handler import MaterialsHandler
 from handlers.data_collection_handler import DataCollectionHandler
@@ -21,6 +25,7 @@ class TripwireBot:
         self.application = Application.builder().token(BOT_TOKEN).build()
         
         # Initialize handlers
+<<<<<<< HEAD
         from pdf_handler import PDFHandler
         from data_manager import UserDataManager
         
@@ -29,6 +34,16 @@ class TripwireBot:
         
         # self.extended_use_handler = ExtendedUseRequestHandler(pdf_handler)
         self.calculation_handler = CalculationHandler(pdf_handler)
+=======
+        # from pdf_handler import PDFHandler
+        from data_manager import UserDataManager
+        
+        # pdf_handler = PDFHandler()
+        data_manager = UserDataManager()
+        
+        # self.extended_use_handler = ExtendedUseRequestHandler(pdf_handler)
+        # self.calculation_handler = CalculationHandler(pdf_handler)
+>>>>>>> 66a159f1d1fd67fd9a0bc573f269d1f9c70a8801
         # self.strategic_handler = StrategicHandler(pdf_handler)
         # self.materials_handler = MaterialsHandler(pdf_handler)
         self.data_collection_handler = DataCollectionHandler(data_manager)
@@ -65,7 +80,11 @@ class TripwireBot:
             welcome_message = f"приветственное сообщение"
             keyboard = [
                 [InlineKeyboardButton("Полезные файлы", callback_data="useful_files")],
+<<<<<<< HEAD
                 [InlineKeyboardButton("Заявка на расчет", callback_data="calculation")],
+=======
+                # [InlineKeyboardButton("Заявка на расчет", callback_data="calculation")],
+>>>>>>> 66a159f1d1fd67fd9a0bc573f269d1f9c70a8801
                 # [InlineKeyboardButton("Заявка на стратегическую сессию", callback_data="strategic")],
                 # [InlineKeyboardButton("Полезные материалы", callback_data="materials")]
             ]
@@ -142,7 +161,12 @@ class TripwireBot:
             await self.data_collection_handler.handle_consent_yes(query, context)
         elif query.data == "consent_no":
             await self.data_collection_handler.handle_consent_no(query, context)
+<<<<<<< HEAD
 
+=======
+        elif query.data == "show_my_data":
+            await self.data_collection_handler.show_user_data(query, context)
+>>>>>>> 66a159f1d1fd67fd9a0bc573f269d1f9c70a8801
         
         # Commented out old handlers for future use
         # # Extended Use Request Handler
@@ -165,6 +189,7 @@ class TripwireBot:
         # elif query.data == "back_to_start":
         #     await self.extended_use_handler.handle_back_to_start(query, context)
         
+<<<<<<< HEAD
         # Calculation Handler
         elif query.data == "calculation":
             await self.calculation_handler.handle_calculation_request(query, context)
@@ -172,6 +197,11 @@ class TripwireBot:
             await self.handle_get_brief(query, context)
         elif query.data == "contact_us":
             await self.handle_contact_us(query, context)
+=======
+        # # Calculation Handler
+        # elif query.data == "calculation":
+        #     await self.calculation_handler.handle_calculation_request(query, context)
+>>>>>>> 66a159f1d1fd67fd9a0bc573f269d1f9c70a8801
         
         # # Strategic Handler
         # elif query.data == "strategic":
@@ -231,7 +261,11 @@ class TripwireBot:
         welcome_message = f"приветственное сообщение"
         keyboard = [
             [InlineKeyboardButton("Полезные файлы", callback_data="useful_files")],
+<<<<<<< HEAD
             [InlineKeyboardButton("Заявка на расчет", callback_data="calculation")],
+=======
+            # [InlineKeyboardButton("Заявка на расчет", callback_data="calculation")],
+>>>>>>> 66a159f1d1fd67fd9a0bc573f269d1f9c70a8801
             # [InlineKeyboardButton("Заявка на стратегическую сессию", callback_data="strategic")],
             # [InlineKeyboardButton("Полезные материалы", callback_data="materials")]
         ]
@@ -273,6 +307,7 @@ class TripwireBot:
             # await update.message.reply_text("Я не нашел ключевых слов в вашем сообщении. Попробуйте использовать слова: аудит, процессы, продукт, файл")
             pass
     
+<<<<<<< HEAD
     async def handle_contact_us(self, query, context):
         """Handle contact us button from calculation handler"""
         keyboard = [
@@ -318,6 +353,8 @@ class TripwireBot:
                 reply_markup=reply_markup
             )
     
+=======
+>>>>>>> 66a159f1d1fd67fd9a0bc573f269d1f9c70a8801
     def run(self):
         """Start the bot"""
         logger.info("Starting TripwireBot...")
