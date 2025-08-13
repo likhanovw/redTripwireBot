@@ -1,28 +1,52 @@
+"""
+TripwireBot Configuration File
+==============================
+
+This file contains all configuration settings for the Telegram bot.
+Organized into logical sections for easy maintenance and updates.
+"""
+
 import os
 from dotenv import load_dotenv
+
+# =============================================================================
+# ENVIRONMENT SETUP
+# =============================================================================
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Bot configuration
+# =============================================================================
+# BOT CONFIGURATION
+# =============================================================================
+
+# Bot token from environment variables
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 
 # Validate that bot token is provided
 if not BOT_TOKEN:
     raise ValueError("BOT_TOKEN environment variable is required. Please set it in your .env file")
 
-# Bot settings
+# Bot identity settings
 BOT_NAME = "TripwireBot"
-BOT_USERNAME = "tripwire_bot"  # Change this to your bot's username 
+BOT_USERNAME = "tripwire_bot"  # Change this to your bot's username
 
-# Keyword to PDF mapping for automatic responses
+# =============================================================================
+# KEYWORD MAPPING
+# =============================================================================
+
+# Maps user keywords to PDF files for automatic responses
+# Format: "keyword": "filename.pdf"
 KEYWORD_PDF_MAPPING = {
+    # Russian keywords
     "аудит": "audit_processes.pdf",
     "процессы": "audit_processes.pdf", 
     "продукт": "audit_product.pdf",
     "продукта": "audit_product.pdf",
     "первый": "frst_file.pdf",
     "файл": "frst_file.pdf",
+    
+    # English keywords (for international users)
     "audit": "audit_processes.pdf",
     "processes": "audit_processes.pdf",
     "product": "audit_product.pdf",
@@ -30,14 +54,25 @@ KEYWORD_PDF_MAPPING = {
     "file": "frst_file.pdf"
 }
 
-# Bot messages
+# =============================================================================
+# BOT MESSAGES
+# =============================================================================
+
+# All text messages displayed by the bot
 MESSAGES = {
+    # Main menu and navigation
     "welcome": "приветственное сообщение",
     "docs": "ссылки на доки",
+    
+    # Contact and support
     "contact_us": "вот наши контакты напишите нам",
+    
+    # File handling
     "brief_caption": "📋 Бриф для расчета",
     "brief_not_found": "❌ Файл бриф не найден. Обратитесь к администратору.",
     "file_error": "❌ Ошибка при отправке файла: {}",
+    
+    # Feature explanations
     "useful_files": """📁 Полезные файлы
 
 Чтобы получить нужный файл, отправьте мне сообщение с ключевым словом.
@@ -48,6 +83,8 @@ MESSAGES = {
 • первый, файл → frst_file.pdf
 
 Просто напишите любое из этих слов, и я отправлю соответствующий PDF файл!""",
+    
+    # Help system
     "help": """🤖 **TripwireBot Help**
 
 **Available Commands:**
@@ -71,19 +108,32 @@ MESSAGES = {
 **Need more help?** Contact the bot administrator."""
 }
 
-# Button texts
+# =============================================================================
+# BUTTON CONFIGURATION
+# =============================================================================
+
+# All button texts used throughout the bot
 BUTTONS = {
+    # Main menu buttons
     "useful_files": "Полезные файлы",
     "calculation": "Заявка на расчет",
+    
+    # Navigation buttons
     "back": "Назад",
     "main_menu": "← В начало",
+    "docs_back": "В начало",
+    
+    # Feature buttons
     "get_brief": "📋 Получить бриф",
-    "contact_us": "📞 Связаться",
-    "docs_back": "В начало"
+    "contact_us": "📞 Связаться"
 }
 
-# File paths
+# =============================================================================
+# FILE PATHS
+# =============================================================================
+
+# Important file paths used by the bot
 FILES = {
-    "brief": "RED.brief.odt",
-    "user_data": "user_data.json"
+    "brief": "RED.brief.odt",      # Brief file for calculations
+    "user_data": "user_data.json"  # User data storage file
 } 
