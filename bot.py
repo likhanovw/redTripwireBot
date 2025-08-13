@@ -216,7 +216,7 @@ class TripwireBot:
     async def handle_contact_us(self, query, context):
         """Handle contact us button from calculation handler"""
         keyboard = [
-            [InlineKeyboardButton("Назад", callback_data="back_to_start")]
+            [InlineKeyboardButton("Назад", callback_data="calculation")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text("вот наши контакты напишите нам", reply_markup=reply_markup)
@@ -226,7 +226,7 @@ class TripwireBot:
         try:
             # Send the RED.brief.odt file with back button attached
             keyboard = [
-                [InlineKeyboardButton("Назад", callback_data="back_to_start")]
+                [InlineKeyboardButton("Назад", callback_data="calculation")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             
@@ -241,7 +241,7 @@ class TripwireBot:
             
         except FileNotFoundError:
             keyboard = [
-                [InlineKeyboardButton("Назад", callback_data="back_to_start")]
+                [InlineKeyboardButton("Назад", callback_data="calculation")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
@@ -250,7 +250,7 @@ class TripwireBot:
             )
         except Exception as e:
             keyboard = [
-                [InlineKeyboardButton("Назад", callback_data="back_to_start")]
+                [InlineKeyboardButton("Назад", callback_data="calculation")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(
