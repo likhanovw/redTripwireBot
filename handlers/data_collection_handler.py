@@ -185,41 +185,4 @@ class DataCollectionHandler:
                 )
             else:
                 await update.message.reply_text("❌ Ошибка сохранения данных. Попробуйте позже.")
-    
 
-    
-
-    
-<<<<<<< HEAD
- 
-=======
-    async def show_user_data(self, query, context):
-        """Show collected user data (for testing)"""
-        user_id = query.from_user.id
-        user_data = self.data_manager.get_user_data(user_id)
-        
-        if user_data:
-            data = user_data["data"]
-            stats = self.data_manager.get_stats()
-            
-            message = f"""
-📊 Ваши данные:
-Имя: {data.get('name', 'Не указано')}
-Телефон: {data.get('phone', 'Не указан')}
-Username: {data.get('username', 'Не указан')}
-Дата согласия: {user_data.get('consent_date', 'Не указана')}
-
-📈 Статистика:
-Всего пользователей: {stats['total_users']}
-Согласились: {stats['users_with_consent']}
-Процент согласия: {stats['consent_rate']:.1f}%
-            """
-        else:
-            message = "У вас пока нет сохраненных данных."
-        
-        keyboard = [
-            [InlineKeyboardButton("Главное меню", callback_data="back_to_start")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(message, reply_markup=reply_markup) 
->>>>>>> 66a159f1d1fd67fd9a0bc573f269d1f9c70a8801
