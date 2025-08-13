@@ -58,7 +58,6 @@ class KeywordHandler:
             
             # Send the PDF file with main menu button attached
             keyboard = [
-                [InlineKeyboardButton(BUTTONS["back"], callback_data="back_to_start")],
                 [InlineKeyboardButton(BUTTONS["main_menu"], callback_data="back_to_start")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
