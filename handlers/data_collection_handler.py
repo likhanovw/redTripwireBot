@@ -104,7 +104,8 @@ class DataCollectionHandler:
             
             # Send main menu directly
             keyboard = [
-                [InlineKeyboardButton("Полезные файлы", callback_data="useful_files")]
+                [InlineKeyboardButton("Полезные файлы", callback_data="useful_files")],
+                [InlineKeyboardButton("Заявка на расчет", callback_data="calculation")]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await context.bot.send_message(
@@ -175,7 +176,8 @@ class DataCollectionHandler:
                 
                 # Send main menu directly
                 keyboard = [
-                    [InlineKeyboardButton("Полезные файлы", callback_data="useful_files")]
+                    [InlineKeyboardButton("Полезные файлы", callback_data="useful_files")],
+                    [InlineKeyboardButton("Заявка на расчет", callback_data="calculation")]
                 ]
                 reply_markup = InlineKeyboardMarkup(keyboard)
                 await context.bot.send_message(
